@@ -78,41 +78,49 @@ npm start
 
 ```text
 BlackJack/
-├── src/
-│   ├── client/                  статика, которую отдаёт сервер
+├── src/                         код приложения
+│   ├── client/                  статические файлы браузерного клиента
 │   │   ├── index.html
 │   │   ├── scripts/main.js
 │   │   └── styles/main.css
-│   └── server/
-│       ├── index.js             точка входа: конфиг, запуск, graceful shutdown
-│       ├── app.js               сборка HTTP + WebSocket + менеджера комнат
-│       ├── config.js            чтение переменных окружения
-│       ├── game/
-│       │   ├── blackjack-table.js   состояние стола и действия игроков
-│       │   ├── cards.js             Card, Deck, Hand
-│       │   ├── constants.js         лимиты и таймауты
-│       │   ├── errors.js            GameError с машинным кодом
-│       │   └── rules.js             подсчёт очков и выплаты
-│       ├── http/http-server.js      статика по белому списку, /health, /status
+│   └── server/                  сервер и игровая логика
+│       ├── index.js             точка входа и завершение процесса
+│       ├── app.js               сборка HTTP, WebSocket и менеджера комнат
+│       ├── config.js            конфигурация из переменных окружения
+│       ├── game/                карты, правила и состояние стола
+│       │   ├── blackjack-table.js
+│       │   ├── cards.js
+│       │   ├── constants.js
+│       │   ├── errors.js
+│       │   └── rules.js
+│       ├── http/http-server.js  HTTP-сервер и раздача статики
 │       ├── network/local-addresses.js
-│       ├── rooms/room-manager.js    сессии, столы, таймеры, переподключение
-│       └── websocket/websocket-server.js  heartbeat, лимит payload, коды ошибок
-├── tests/
-│   ├── unit/                    карты, правила, конфиг, сетевые адреса
-│   ├── server/                  стол и менеджер комнат на фейковых таймерах
-│   ├── integration/             HTTP + WebSocket против настоящего сервера
-│   ├── client/                  клиентский код в песочнице с DOM-заглушкой
+│       ├── rooms/room-manager.js
+│       └── websocket/websocket-server.js
+├── tests/                       автоматические тесты
+│   ├── unit/                    правила, карты, конфигурация, сеть
+│   ├── server/                  игровая логика и менеджер комнат
+│   ├── integration/             HTTP и WebSocket
+│   ├── client/                  клиент в DOM-песочнице
 │   └── helpers/                 общие тестовые утилиты
-├── scripts/                     start.sh и start.bat
-├── docs/                        архитектура, правила, протокол
-├── .github/workflows/ci.yml     линтер и тесты на Node 20/22/24
-├── eslint.config.js
-├── jest.config.js
-├── package.json
-├── CHANGELOG.md
+├── scripts/                     скрипты запуска для Windows и Linux/macOS
+│   ├── start.bat
+│   └── start.sh
+├── docs/                        архитектура, правила, протокол и TODO
+├── .github/workflows/ci.yml     проверки линтера и тестов на Node.js 20/22/24
+├── .editorconfig                единый стиль файлов
+├── .gitignore                   исключения для Git
+├── .nvmrc                       рекомендуемая версия Node.js
+├── eslint.config.js             конфигурация ESLint
+├── jest.config.js               конфигурация Jest и пороги покрытия
+├── package.json                 метаданные, зависимости и команды npm
+├── package-lock.json            зафиксированные версии зависимостей
+├── CHANGELOG.md                 история версий
 ├── LICENSE
 └── README.md
 ```
+
+`node_modules/` и `coverage/` создаются локально и исключены из Git; исходники, тесты, документация и конфигурация хранятся отдельно.
 
 ## Документация
 
@@ -207,12 +215,15 @@ Then open `http://localhost:3000`. The server prints local network addresses as 
 ### Project layout
 
 ```text
-src/client/   static assets served by the server
-src/server/   config, HTTP, WebSocket, room manager and game engine
+src/          application code: browser client and Node.js server
 tests/        unit, server, integration and client tests plus helpers
-scripts/      start.sh and start.bat
-docs/         architecture, rules and WebSocket protocol
+scripts/      platform-specific start scripts
+docs/         architecture, rules, WebSocket protocol and TODO
+.github/      CI workflow
+root files    npm, ESLint, Jest, Node.js and editor configuration
 ```
+
+`node_modules/` and `coverage/` are generated locally and excluded from Git.
 
 ### Documentation
 
