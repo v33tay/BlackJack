@@ -3,7 +3,7 @@
 const { Deck, Hand, createDeckCards } = require("./cards");
 const { GameError } = require("./errors");
 const { handValue, settleHand } = require("./rules");
-const { BOT_TYPES, createBotProfile } = require("./bot-strategies");
+const { BOT_TYPES, createBotProfile, getBotBet } = require("./bot-strategies");
 const {
   BET_STEP,
   DECKS_PER_SHOE,
@@ -94,7 +94,7 @@ class BlackjackTable {
     const bot = this.addPlayer(id, profile.name);
     bot.isBot = true;
     bot.botType = profile.type;
-    bot.bet = MIN_BET;
+    bot.bet = getBotBet(bot.botType, bot.balance);
     bot.ready = true;
     return bot;
   }
@@ -133,7 +133,7 @@ class BlackjackTable {
     this.dealer = new Hand();
     this.dealerVisibleCardCount = 0;
     for (const player of this.players) {
-      player.bet = player.isBot ? MIN_BET : DEFAULT_BET;
+      player.bet = player.isBot ? getBotBet(player.botType, player.balance) : DEFAULT_BET;
       player.ready = Boolean(player.isBot);
       player.hands = [];
     }

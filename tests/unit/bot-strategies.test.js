@@ -1,6 +1,6 @@
 "use strict";
 
-const { chooseBotAction, createBotProfile } = require("../../src/server/game/bot-strategies");
+const { chooseBotAction, createBotProfile, getBotBet } = require("../../src/server/game/bot-strategies");
 const { Hand } = require("../../src/server/game/cards");
 
 function player(balance = 1000) {
@@ -16,6 +16,14 @@ describe("bot strategies", () => {
 
   test("rejects an unknown strategy", () => {
     expect(() => createBotProfile("unknown")).toThrow("Выберите один из доступных типов бота.");
+  });
+
+  test("calculates bets from bot strategy and current balance", () => {
+    expect(getBotBet("risky", 1000)).toBe(200);
+    expect(getBotBet("thoughtful", 1000)).toBe(100);
+    expect(getBotBet("timid", 1000)).toBe(50);
+    expect(getBotBet("risky", 7)).toBe(1);
+    expect(getBotBet("thoughtful", 0)).toBe(0);
   });
 
   test("uses distinct hit and stand thresholds", () => {

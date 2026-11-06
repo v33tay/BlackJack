@@ -9,11 +9,23 @@ const BOT_TYPES = Object.freeze({
   timid: "Трусливый"
 });
 
+const BOT_BET_FRACTIONS = Object.freeze({
+  risky: 0.2,
+  thoughtful: 0.1,
+  timid: 0.05
+});
+
 const BOT_NAMES = Object.freeze({
   risky: ["Фортуна", "Ва-Банк", "Джокер", "КазиноКот", "Смельчак"],
   thoughtful: ["Стратег", "Профессор", "Счётчик", "Аналитик", "Шахматист"],
   timid: ["Осторожный", "Тихоня", "Подстрахуй", "Черепаха", "БезРиска"]
 });
+
+function getBotBet(type, balance) {
+  const fraction = BOT_BET_FRACTIONS[type];
+  if (!fraction || !Number.isFinite(balance) || balance <= 0) return 0;
+  return Math.min(balance, Math.max(1, Math.floor(balance * fraction)));
+}
 
 function createBotProfile(type, existingNames = []) {
   if (!Object.hasOwn(BOT_TYPES, type)) {
@@ -50,4 +62,4 @@ function chooseBotAction(type, player, hand) {
   return value < 12 ? "hit" : "stand";
 }
 
-module.exports = { BOT_TYPES, createBotProfile, chooseBotAction };
+module.exports = { BOT_TYPES, createBotProfile, chooseBotAction, getBotBet };

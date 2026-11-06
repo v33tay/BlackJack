@@ -2,6 +2,7 @@
 
 const { createExactDeck, createFullDeck } = require("../helpers/deck");
 const { RoomManager } = require("../../src/server/rooms/room-manager");
+const { BlackjackTable } = require("../../src/server/game/blackjack-table");
 const { MAX_PLAYERS } = require("../../src/server/game/constants");
 
 function createRoom(ranks, options = {}) {
@@ -85,7 +86,7 @@ describe("Self-running blackjack tables", () => {
     room.manager.handle(room.host.sessionId, { type: "addBot", botType: "risky" });
     let table = room.manager.rooms.get(room.code);
     const bot = table.players.find((player) => player.isBot);
-    expect(bot).toMatchObject({ isBot: true, botType: "risky", ready: true, bet: 1 });
+    expect(bot).toMatchObject({ isBot: true, botType: "risky", ready: true, bet: 200 });
     expect(table.snapshot(room.host.playerId).viewer.canManageBotsNow).toBe(true);
 
     table.phase = "player";
@@ -95,6 +96,26 @@ describe("Self-running blackjack tables", () => {
     room.manager.handle(room.host.sessionId, { type: "removeBot", playerId: bot.id });
     table = room.manager.rooms.get(room.code);
     expect(table.players.some((player) => player.isBot)).toBe(false);
+  });
+
+  test("sets bot bets by strategy and recalculates them from the current balance", () => {
+    const table = new BlackjackTable("ABC123");
+    const risky = table.addBot("b1", "risky");
+    const thoughtful = table.addBot("b2", "thoughtful");
+    const timid = table.addBot("b3", "timid");
+
+    expect([risky.bet, thoughtful.bet, timid.bet]).toEqual([200, 100, 50]);
+
+    risky.balance = 75;
+    table.openBetting();
+    expect(risky.bet).toBe(15);
+    expect(thoughtful.bet).toBe(100);
+    expect(timid.bet).toBe(50);
+
+    risky.balance = 0;
+    table.openBetting();
+    expect(risky.bet).toBe(0);
+    expect(risky.ready).toBe(true);
   });
 
   test("rejects invalid bot types and exposes bot permissions only to the creator", () => {
