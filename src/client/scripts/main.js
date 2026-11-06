@@ -28,7 +28,6 @@
     seats: document.querySelector("#seats"),
     botControls: document.querySelector("#bot-controls"),
     botType: document.querySelector("#bot-type"),
-    addBot: document.querySelector("#add-bot-button"),
     bet: document.querySelector("#bet"),
     betClear: document.querySelector("#bet-clear"),
     chip10: document.querySelector("#chip-10"),
@@ -176,7 +175,12 @@
       onLeft();
       return;
     }
+    if (message.type === "queued") {
+      setStatus(message.message || "Ожидаете свободного места за столом.");
+      return;
+    }
     if (message.type === "state") {
+      setStatus("Подключено");
       state = message.state;
       awaitingState = false;
       optimisticBet = null;
@@ -285,6 +289,15 @@
       seat.className = `seat${player?.id === state.currentPlayerId ? " active" : ""}${player && !player.connected ? " offline" : ""}`;
       if (!player) {
         seat.textContent = "Свободное место";
+        if (state.viewer?.canManageBotsNow && !awaitingState) {
+          const addBot = document.createElement("button");
+          addBot.className = "button button-ghost bot-remove";
+          addBot.type = "button";
+          addBot.textContent = "Добавить бота";
+          addBot.disabled = !state.viewer?.canManageBotsNow || awaitingState;
+          addBot.addEventListener("click", () => sendAction({ type: "addBot", botType: elements.botType.value }));
+          seat.replaceChildren(addBot);
+        }
       } else {
         const name = document.createElement("strong");
         name.textContent = `${player.name}${player.isBot ? ` · ${rules.botTypes?.[player.botType] ?? "бот"}` : ""}`;
@@ -495,8 +508,7 @@
     renderSeats(rules, betValue);
     const canManageBots = Boolean(viewer?.canManageBotsNow) && !awaitingState;
     elements.botControls.hidden = !viewer?.canManageBots;
-    elements.botType.disabled = !canManageBots || state.players.length >= rules.maxPlayers;
-    elements.addBot.disabled = !canManageBots || state.players.length >= rules.maxPlayers;
+    elements.botType.disabled = !canManageBots;
 
     if (state.round > lastRound) {
       lastRound = state.round;
@@ -565,10 +577,6 @@
   elements.create.addEventListener("click", () => {
     const name = playerName();
     if (name) send({ type: "create", name });
-  });
-  elements.addBot.addEventListener("click", () => {
-    if (!state?.viewer?.canManageBotsNow) return;
-    sendAction({ type: "addBot", botType: elements.botType.value });
   });
   elements.join.addEventListener("click", () => {
     const name = playerName();

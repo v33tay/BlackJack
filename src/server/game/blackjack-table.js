@@ -108,6 +108,20 @@ class BlackjackTable {
     return this.removePlayer(playerId);
   }
 
+  replaceBotWithPlayer(playerId, id, name, token) {
+    if (!["waiting", "betting", "over"].includes(this.phase)) {
+      throw new GameError("ROUND_IN_PROGRESS", "Бота можно заменить только после окончания раунда.");
+    }
+    const index = this.players.findIndex((player) => player.id === playerId && player.isBot);
+    if (index === -1) throw new GameError("BOT_NOT_FOUND", "Бот не найден за этим столом.");
+    if (this.players.some((player) => player.id === id)) {
+      throw new GameError("ALREADY_SEATED", "Вы уже за этим столом.");
+    }
+    const player = createPlayer(id, name, { token });
+    this.players[index] = player;
+    return player;
+  }
+
   isPlaying(player) {
     return player.connected && player.bet >= MIN_BET && player.balance >= player.bet;
   }

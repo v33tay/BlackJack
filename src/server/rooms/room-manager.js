@@ -9,6 +9,8 @@ const {
   EMPTY_TABLE_TTL_MS,
   MAX_ROOMS,
   MAX_SESSIONS,
+  MAX_PLAYERS,
+  MAX_NAME_LENGTH,
   RECONNECT_GRACE_MS,
   ROUND_PAUSE_MS,
   TURN_TIMEOUT_MS
@@ -50,6 +52,7 @@ class RoomManager {
     this.phaseTimers = new Map();
     this.dealerTimers = new Map();
     this.emptyTableTimers = new Map();
+    this.pendingJoins = new Map();
   }
 
   connect(send) {
@@ -144,9 +147,61 @@ class RoomManager {
     const code = command.code.toUpperCase();
     const table = this.rooms.get(code);
     if (!table) throw new GameError("ROOM_NOT_FOUND", "Стол не найден.");
-    const player = table.addPlayer(randomUUID(), command.name, randomUUID());
+    if (typeof command.name !== "string") throw new GameError("NAME_INVALID", "Введите имя игрока.");
+    const name = command.name.trim().replace(/\s+/g, " ");
+    if (!name || name.length > MAX_NAME_LENGTH) {
+      throw new GameError("NAME_INVALID", `Имя должно содержать от 1 до ${MAX_NAME_LENGTH} символов.`);
+    }
+    const queued = this.pendingJoins.get(code) ?? [];
+    if (queued.some((request) => request.session.id === session.id)) {
+      throw new GameError("JOIN_PENDING", "Ваш запрос на место уже ожидает окончания раунда.");
+    }
+    const availableBot = table.players.find((player) => player.isBot);
+    if (table.players.length >= MAX_PLAYERS && availableBot) {
+      if (table.phase === "waiting" || table.phase === "over") {
+        const player = table.replaceBotWithPlayer(availableBot.id, randomUUID(), name, randomUUID());
+        this.bindSession(session, table, player);
+        this.afterCommand(table);
+        return;
+      }
+      if (queued.length >= table.players.filter((player) => player.isBot).length) {
+        throw new GameError("TABLE_FULL", "За столом уже ожидают другие игроки.");
+      }
+      queued.push({ session, name });
+      this.pendingJoins.set(code, queued);
+      session.send({ type: "queued", message: "Стол заполнен ботами. Вы займёте место после окончания раунда." });
+      return;
+    }
+    if (table.players.length >= MAX_PLAYERS) {
+      throw new GameError("TABLE_FULL", "За столом уже шесть игроков.");
+    }
+    const player = table.addPlayer(randomUUID(), name, randomUUID());
     this.bindSession(session, table, player);
     this.afterCommand(table);
+  }
+
+  processPendingJoins(table) {
+    if (!["waiting", "betting", "over"].includes(table.phase)) return;
+    const queued = this.pendingJoins.get(table.code);
+    if (!queued?.length) return;
+
+    while (queued.length) {
+      const request = queued[0];
+      if (!this.sessions.has(request.session.id)) {
+        queued.shift();
+        continue;
+      }
+      const bot = table.players.length >= MAX_PLAYERS
+        ? table.players.find((player) => player.isBot)
+        : null;
+      if (table.players.length >= MAX_PLAYERS && !bot) break;
+      const player = bot
+        ? table.replaceBotWithPlayer(bot.id, randomUUID(), request.name, randomUUID())
+        : table.addPlayer(randomUUID(), request.name, randomUUID());
+      this.bindSession(request.session, table, player);
+      queued.shift();
+    }
+    if (!queued.length) this.pendingJoins.delete(table.code);
   }
 
   resumeTable(session, token) {
@@ -184,6 +239,11 @@ class RoomManager {
     const player = table?.players.find((entry) => entry.id === session.playerId);
     if (!table || !player) {
       this.releaseSession(session);
+      for (const [code, queued] of this.pendingJoins) {
+        const remaining = queued.filter((request) => request.session.id !== sessionId);
+        if (remaining.length) this.pendingJoins.set(code, remaining);
+        else this.pendingJoins.delete(code);
+      }
       this.onUpdate();
       return;
     }
@@ -266,6 +326,7 @@ class RoomManager {
   }
 
   afterCommand(table) {
+    this.processPendingJoins(table);
     if (table.phase === "betting" && table.allReady()) {
       this.finishBetting(table);
       return;
@@ -274,6 +335,7 @@ class RoomManager {
   }
 
   advance(table) {
+    this.processPendingJoins(table);
     this.clearEmptyTableCleanup(table);
     const hasConnected = table.players.some((player) => player.connected);
     if (!hasConnected) {
@@ -318,6 +380,7 @@ class RoomManager {
   finishBetting(table) {
     if (table.phase !== "betting") return;
     if (!table.hasActivePlayers()) {
+      this.processPendingJoins(table);
       // Никто не поставил: открываем следующее окно ставок.
       this.advance(table);
       return;

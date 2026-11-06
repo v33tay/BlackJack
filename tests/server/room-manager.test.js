@@ -76,6 +76,39 @@ describe("Self-running blackjack tables", () => {
     expect(pendingTimer(room, 10_000)).toBeDefined();
   });
 
+  test("queues players when the full table can only make room by replacing a bot", () => {
+    const room = createRoom([]);
+    for (let index = 0; index < MAX_PLAYERS - 1; index += 1) {
+      room.manager.handle(room.host.sessionId, { type: "addBot", botType: "risky" });
+    }
+
+    const guestSession = room.manager.connect(() => {});
+    room.manager.handle(guestSession, { type: "join", name: "Гость", code: room.code });
+    const table = room.manager.rooms.get(room.code);
+    expect(table.players).toHaveLength(MAX_PLAYERS);
+    expect(table.players.filter((player) => player.isBot)).toHaveLength(MAX_PLAYERS - 1);
+    expect(room.manager.sessions.get(guestSession).roomCode).toBeNull();
+
+    table.phase = "over";
+    room.manager.afterCommand(table);
+
+    expect(table.players).toHaveLength(MAX_PLAYERS);
+    expect(table.players.filter((player) => player.isBot)).toHaveLength(MAX_PLAYERS - 2);
+    expect(table.players.some((player) => player.name === "Гость" && !player.isBot)).toBe(true);
+    expect(room.manager.sessions.get(guestSession).playerId).toBeTruthy();
+  });
+
+  test("seats a new player in an available space even when bots are present", () => {
+    const room = createRoom([]);
+    room.manager.handle(room.host.sessionId, { type: "addBot", botType: "risky" });
+    const guest = room.connect("Гость", "join", room.code);
+    const table = room.manager.rooms.get(room.code);
+
+    expect(table.players).toHaveLength(3);
+    expect(table.players.some((player) => player.id === guest.playerId && !player.isBot)).toBe(true);
+    expect(table.players.filter((player) => player.isBot)).toHaveLength(1);
+  });
+
   test("adds bots only for the creator between rounds", () => {
     const room = createRoom([]);
     const guest = room.connect("Гость", "join", room.code);

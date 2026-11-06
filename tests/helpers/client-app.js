@@ -13,7 +13,7 @@ const CLIENT_SOURCE = fs.readFileSync(
 const ELEMENT_IDS = [
   "connection-status", "balance-box", "balance", "lobby", "lobby-message",
   "player-name", "room-code", "create-button", "join-button", "game-view",
-  "room-code-display", "seat-count", "phase-timer", "seats", "bot-controls", "bot-type", "add-bot-button", "bet", "bet-clear",
+  "room-code-display", "seat-count", "phase-timer", "seats", "bot-controls", "bot-type", "bet", "bet-clear",
   "chip-10", "chip-25", "chip-50", "ready-button", "hit-button", "stand-button",
   "double-button", "split-button", "leave-button", "rebuy-button",
   "dealer-cards", "dealer-score", "player-hands", "message", "round-result", "app-error"
