@@ -3,6 +3,7 @@
 const { randomBytes, randomUUID } = require("node:crypto");
 const { BlackjackTable } = require("../game/blackjack-table");
 const { GameError } = require("../game/errors");
+const { chooseBotAction } = require("../game/bot-strategies");
 const {
   BETTING_TIME_MS,
   EMPTY_TABLE_TTL_MS,
@@ -107,6 +108,14 @@ class RoomManager {
       case "rebuy":
         table.rebuy(session.playerId);
         break;
+      case "addBot":
+        this.requireBotManager(table, session);
+        table.addBot(randomUUID(), command.botType);
+        break;
+      case "removeBot":
+        this.requireBotManager(table, session);
+        table.removeBot(command.playerId);
+        break;
       default:
         throw new GameError("UNKNOWN_COMMAND", "Неизвестное действие.");
     }
@@ -121,6 +130,7 @@ class RoomManager {
     const code = this.createCode();
     const table = new BlackjackTable(code, { deckFactory: this.deckFactory });
     const player = table.addPlayer(randomUUID(), name, randomUUID());
+    table.creatorId = player.id;
     this.rooms.set(code, table);
     this.bindSession(session, table, player);
     this.afterCommand(table);
@@ -219,6 +229,12 @@ class RoomManager {
     session.roomCode = null;
     session.playerId = null;
     session.token = null;
+  }
+
+  requireBotManager(table, session) {
+    if (session.playerId !== table.creatorId) {
+      throw new GameError("BOT_PERMISSION_DENIED", "Только создатель стола может управлять ботами.");
+    }
   }
 
   createCode() {
@@ -344,7 +360,21 @@ class RoomManager {
 
   scheduleTurnTimeout(table) {
     this.clearPhaseTimer(table);
-    if (!this.turnTimeoutMs || table.phase !== "player" || !table.currentTurn) return;
+    if (table.phase !== "player" || !table.currentTurn) return;
+    const currentPlayer = table.currentPlayer;
+    if (currentPlayer?.isBot) {
+      const handle = this.setTimeoutFn(() => {
+        this.phaseTimers.delete(table.code);
+        table.phaseEndsAt = null;
+        if (this.rooms.get(table.code) !== table || table.phase !== "player"
+          || table.currentPlayer?.id !== currentPlayer.id) return;
+        this.playBotTurn(table, currentPlayer);
+        this.advance(table);
+      }, 350);
+      this.phaseTimers.set(table.code, handle);
+      return;
+    }
+    if (!this.turnTimeoutMs) return;
     const playerId = table.currentTurn.playerId;
     table.phaseEndsAt = Date.now() + this.turnTimeoutMs;
     const handle = this.setTimeoutFn(() => {
@@ -361,6 +391,20 @@ class RoomManager {
       this.advance(table);
     }, this.turnTimeoutMs);
     this.phaseTimers.set(table.code, handle);
+  }
+
+  playBotTurn(table, player) {
+    let actions = 0;
+    while (table.phase === "player" && table.currentPlayer?.id === player.id && actions < 12) {
+      const hand = player.hands[table.currentTurn.handIndex];
+      if (!hand || hand.finished) break;
+      const action = chooseBotAction(player.botType, player, hand);
+      if (action === "hit") table.hit(player.id);
+      else if (action === "double") table.doubleDown(player.id);
+      else if (action === "split") table.split(player.id);
+      else table.stand(player.id);
+      actions += 1;
+    }
   }
 
   scheduleDealerStep(table) {

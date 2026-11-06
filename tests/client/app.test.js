@@ -62,6 +62,25 @@ describe("Multiplayer blackjack client", () => {
     expect(app.elements["phase-timer"].textContent).toMatch(/^Ставки: \d+ с$/);
   });
 
+  test("creator sees bot controls only between rounds", () => {
+    const app = createClientApp();
+    const socket = startAtTable(app, {
+      overrides: { canManageBots: true, canManageBotsNow: true, isCreator: true }
+    });
+
+    expect(app.elements["bot-controls"].hidden).toBe(false);
+    expect(app.elements["add-bot-button"].disabled).toBe(false);
+    app.elements["bot-type"].value = "timid";
+    app.elements["add-bot-button"].click();
+    expect(socket.sent.at(-1)).toEqual({ type: "addBot", botType: "timid" });
+
+    socket.receive({
+      type: "state",
+      state: createBettingState("player-id", "QW7R2K", [player("player-id")], { canManageBots: false })
+    });
+    expect(app.elements["bot-controls"].hidden).toBe(true);
+  });
+
   test("joins a table using the entered code", () => {
     const app = createClientApp();
     app.elements["player-name"].value = "Гость";

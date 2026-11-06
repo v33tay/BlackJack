@@ -75,6 +75,57 @@ describe("Self-running blackjack tables", () => {
     expect(pendingTimer(room, 10_000)).toBeDefined();
   });
 
+  test("adds bots only for the creator between rounds", () => {
+    const room = createRoom([]);
+    const guest = room.connect("Гость", "join", room.code);
+
+    expect(() => room.manager.handle(guest.sessionId, { type: "addBot", botType: "risky" }))
+      .toThrow("Только создатель стола может управлять ботами.");
+
+    room.manager.handle(room.host.sessionId, { type: "addBot", botType: "risky" });
+    let table = room.manager.rooms.get(room.code);
+    const bot = table.players.find((player) => player.isBot);
+    expect(bot).toMatchObject({ isBot: true, botType: "risky", ready: true, bet: 1 });
+    expect(table.snapshot(room.host.playerId).viewer.canManageBotsNow).toBe(true);
+
+    table.phase = "player";
+    expect(() => room.manager.handle(room.host.sessionId, { type: "removeBot", playerId: bot.id }))
+      .toThrow("Ботов можно убирать только между раундами.");
+    table.phase = "betting";
+    room.manager.handle(room.host.sessionId, { type: "removeBot", playerId: bot.id });
+    table = room.manager.rooms.get(room.code);
+    expect(table.players.some((player) => player.isBot)).toBe(false);
+  });
+
+  test("rejects invalid bot types and exposes bot permissions only to the creator", () => {
+    const room = createRoom([]);
+    const guest = room.connect("Гость", "join", room.code);
+    const table = room.manager.rooms.get(room.code);
+
+    expect(() => room.manager.handle(room.host.sessionId, { type: "addBot", botType: "unknown" }))
+      .toThrow("Выберите один из доступных типов бота.");
+    expect(table.snapshot(guest.playerId).viewer.canManageBots).toBe(false);
+    expect(table.snapshot(room.host.playerId).viewer.canManageBots).toBe(true);
+  });
+
+  test("runs bot turns automatically using the selected strategy", () => {
+    const room = createRoom(["10", "6", "7", "10", "2", "10"]);
+    room.manager.handle(room.host.sessionId, { type: "addBot", botType: "timid" });
+    const bot = room.manager.rooms.get(room.code).players.find((player) => player.isBot);
+    betAndReady(room, room.host, 50);
+
+    let table = room.manager.rooms.get(room.code);
+    expect(table.phase).toBe("player");
+    expect(table.currentPlayer.id).toBe(room.host.playerId);
+    room.manager.handle(room.host.sessionId, { type: "stand" });
+    table = room.manager.rooms.get(room.code);
+    expect(table.currentPlayer.id).toBe(bot.id);
+    fireTimer(room, 350);
+    table = room.manager.rooms.get(room.code);
+    expect(bot.hands[0].finished).toBe(true);
+    expect(["player", "dealer", "over"]).toContain(table.phase);
+  });
+
   test("starts the round as soon as every player is ready", () => {
     const room = createRoom(["10", "9", "6", "7", "8", "10"]);
     const guest = room.connect("Второй", "join", room.code);

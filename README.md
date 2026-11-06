@@ -15,6 +15,8 @@
 - восстановление места после обрыва связи (токен места в `localStorage`)
 - выход из-за стола и докупка фишек, если их не хватает на минимальную ставку
 - авто-пас игрока, который отключился или не успел сделать ход
+- боты трёх типов: «Рискованный», «Продуманный» и «Трусливый», с автоматическими ходами и случайными никнеймами
+- создатель стола может добавлять и убирать ботов только между раундами
 - устойчивость к исчерпанию колоды: шуз пересобирается, раунд не ломается
 - защита от двойных нажатий и повторной отправки действий
 - запуск на Windows и Linux
@@ -72,6 +74,7 @@ npm start
 - После раунда показывается результат, затем ставки сбрасываются и начинается новый приём ставок.
 - «Докупить фишки» появляется, когда на балансе не осталось фишек.
 - «Выйти из-за стола» освобождает место; если игроков не осталось, стол удаляется через `EMPTY_TABLE_TTL_MS`.
+- Создатель стола может добавлять и убирать ботов между раундами: выберите тип «Рискованный», «Продуманный» или «Трусливый». Бот получает случайный никнейм и автоматически играет по своей стратегии.
 - Если закрыть вкладку или пропадёт сеть, место сохраняется на время `RECONNECT_GRACE_MS`.
 
 ## Структура проекта
@@ -89,6 +92,7 @@ BlackJack/
 │       ├── config.js            конфигурация из переменных окружения
 │       ├── game/                карты, правила и состояние стола
 │       │   ├── blackjack-table.js
+│       │   ├── bot-strategies.js  типы и стратегии ботов
 │       │   ├── cards.js
 │       │   ├── constants.js
 │       │   ├── errors.js
@@ -177,6 +181,8 @@ Browser-based blackjack for a group of friends: a framework-free Node.js server 
 - seat recovery after a dropped connection (seat token in `localStorage`)
 - leaving the table and a rebuy for players who cannot cover the minimum bet
 - automatic stand for players who disconnect or run out of time
+- three bot types: Risky, Thoughtful and Timid, with automatic turns and random nicknames
+- the table creator can add or remove bots between rounds only
 - safe shoe exhaustion: the shoe is rebuilt and the round survives
 - protection against double clicks and duplicate actions
 
@@ -188,6 +194,8 @@ npm start
 ```
 
 Then open `http://localhost:3000`. The server prints local network addresses as well. Platform scripts live in `scripts/` and install dependencies automatically.
+
+During a game, the table creator can add or remove bots between rounds. Choose Risky, Thoughtful or Timid; bots get random nicknames and play automatically using their selected strategy.
 
 ### Scripts
 
@@ -216,6 +224,7 @@ Then open `http://localhost:3000`. The server prints local network addresses as 
 
 ```text
 src/          application code: browser client and Node.js server
+              bot strategies live in src/server/game/bot-strategies.js
 tests/        unit, server, integration and client tests plus helpers
 scripts/      platform-specific start scripts
 docs/         architecture, rules, WebSocket protocol and TODO

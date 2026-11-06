@@ -3,6 +3,7 @@
 const { Deck, Hand, createDeckCards } = require("./cards");
 const { GameError } = require("./errors");
 const { handValue, settleHand } = require("./rules");
+const { BOT_TYPES, createBotProfile } = require("./bot-strategies");
 const {
   BET_STEP,
   DECKS_PER_SHOE,
@@ -49,8 +50,9 @@ function validateBet(amount, balance) {
 }
 
 class BlackjackTable {
-  constructor(code, { deckFactory = () => createShoe() } = {}) {
+  constructor(code, { deckFactory = () => createShoe(), creatorId = null } = {}) {
     this.code = code;
+    this.creatorId = creatorId;
     this.players = [];
     this.phase = "waiting";
     this.round = 0;
@@ -84,6 +86,28 @@ class BlackjackTable {
     return player;
   }
 
+  addBot(id, type) {
+    if (!["waiting", "betting", "over"].includes(this.phase)) {
+      throw new GameError("ROUND_IN_PROGRESS", "Ботов можно добавлять только между раундами.");
+    }
+    const profile = createBotProfile(type, this.players.map((player) => player.name));
+    const bot = this.addPlayer(id, profile.name);
+    bot.isBot = true;
+    bot.botType = profile.type;
+    bot.bet = MIN_BET;
+    bot.ready = true;
+    return bot;
+  }
+
+  removeBot(playerId) {
+    if (!["waiting", "betting", "over"].includes(this.phase)) {
+      throw new GameError("ROUND_IN_PROGRESS", "Ботов можно убирать только между раундами.");
+    }
+    const player = this.players.find((entry) => entry.id === playerId);
+    if (!player?.isBot) throw new GameError("BOT_NOT_FOUND", "Бот не найден за этим столом.");
+    return this.removePlayer(playerId);
+  }
+
   isPlaying(player) {
     return player.connected && player.bet >= MIN_BET && player.balance >= player.bet;
   }
@@ -109,8 +133,8 @@ class BlackjackTable {
     this.dealer = new Hand();
     this.dealerVisibleCardCount = 0;
     for (const player of this.players) {
-      player.bet = DEFAULT_BET;
-      player.ready = false;
+      player.bet = player.isBot ? MIN_BET : DEFAULT_BET;
+      player.ready = Boolean(player.isBot);
       player.hands = [];
     }
     return this;
@@ -394,11 +418,15 @@ class BlackjackTable {
         maxPlayers: MAX_PLAYERS,
         minBet: MIN_BET,
         betStep: BET_STEP,
-        startingBalance: STARTING_BALANCE
+        startingBalance: STARTING_BALANCE,
+        botTypes: BOT_TYPES
       },
       viewer: viewer ? {
         id: viewer.id,
         token: viewer.token,
+        isCreator: viewer.id === this.creatorId,
+        canManageBots: viewer.id === this.creatorId,
+        canManageBotsNow: viewer.id === this.creatorId && ["waiting", "betting", "over"].includes(this.phase),
         balance: viewer.balance,
         bet: viewer.bet,
         ready: viewer.ready,
@@ -417,6 +445,8 @@ class BlackjackTable {
       players: this.players.map((player) => ({
         id: player.id,
         name: player.name,
+        isBot: Boolean(player.isBot),
+        botType: player.botType ?? null,
         balance: player.balance,
         bet: player.bet,
         ready: player.ready,

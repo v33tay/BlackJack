@@ -16,6 +16,8 @@
 | `double` | — | удвоить ставку и взять одну карту |
 | `split` | — | разделить пару на две руки |
 | `rebuy` | — | докупить фишки, если на балансе 0 |
+| `addBot` | `botType` | добавить бота (`risky`, `thoughtful`, `timid`); только создатель, между раундами |
+| `removeBot` | `playerId` | убрать бота; только создатель, между раундами |
 | `leave` | — | выйти из-за стола |
 
 Команды `start` больше нет: раунды начинаются автоматически.
@@ -38,16 +40,18 @@
     "currentHandIndex": -1,
     "timer": { "remainingMs": 9400 },
     "dealer": { "cards": [], "value": null, "hidden": false },
-    "rules": { "maxPlayers": 6, "minBet": 1, "betStep": 1, "startingBalance": 1000 },
+    "rules": { "maxPlayers": 6, "minBet": 1, "betStep": 1, "startingBalance": 1000, "botTypes": { "risky": "Рискованный", "thoughtful": "Продуманный", "timid": "Трусливый" } },
     "viewer": {
-      "id": "...", "token": "...", "balance": 950, "bet": 50, "ready": false, "connected": true,
+      "id": "...", "token": "...", "isCreator": true,
+      "canManageBots": true, "canManageBotsNow": true,
+      "balance": 950, "bet": 50, "ready": false, "connected": true,
       "handIndex": -1,
       "canBet": true, "canReady": true, "canUnready": false,
       "canHit": false, "canStand": false, "canDouble": false, "canSplit": false,
       "canRebuy": false, "sittingOut": false
     },
     "players": [
-      { "id": "...", "name": "Алексей", "balance": 950, "bet": 50, "ready": false, "connected": true, "hands": [] }
+      { "id": "...", "name": "Алексей", "isBot": false, "botType": null, "balance": 950, "bet": 50, "ready": false, "connected": true, "hands": [] }
     ]
   }
 }
@@ -95,6 +99,9 @@
 | `DOUBLE_UNAVAILABLE`, `SPLIT_UNAVAILABLE` | правило не позволяет действие |
 | `NO_ACTIVE_PLAYERS` | никто не поставил, раунд не начать |
 | `REBUY_UNAVAILABLE` | докупка доступна только при нулевом балансе |
+| `BOT_TYPE_INVALID` | несуществующий тип бота |
+| `BOT_PERMISSION_DENIED` | ботами пытается управлять не создатель стола |
+| `BOT_NOT_FOUND` | бот не найден за этим столом |
 | `RESUME_FAILED` | место не сохранено или срок хранения истёк |
 | `TOO_MANY_ROOMS`, `TOO_MANY_SESSIONS` | превышены серверные лимиты |
 | `INTERNAL` | непредвиденная ошибка сервера |

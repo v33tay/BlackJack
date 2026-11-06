@@ -48,6 +48,15 @@
             <button class="button button-ghost" id="leave-button" type="button">Выйти из-за стола</button>
           </div>
         </div>
+      <section id="bot-controls" class="bot-controls" aria-label="Управление ботами" hidden>
+          <label for="bot-type">Добавить бота</label>
+          <select id="bot-type">
+            <option value="risky">Рискованный</option>
+            <option value="thoughtful">Продуманный</option>
+            <option value="timid">Трусливый</option>
+          </select>
+          <button class="button button-ghost" id="add-bot-button" type="button">Добавить</button>
+        </section>
         <section id="seats" class="seats" aria-label="Игроки за столом"></section>
         <section class="game-area" aria-label="Игровой стол">
           <div class="table-heading">

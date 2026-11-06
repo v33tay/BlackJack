@@ -194,8 +194,34 @@ input {
   font-size: .74rem;
 }
 
-.button-ghost:not(:disabled):hover {
+ .button-ghost:not(:disabled):hover {
   background: rgba(226, 194, 123, .14);
+}
+
+.bot-controls {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin: 0 4px 12px;
+  color: var(--muted);
+  font-size: .8rem;
+}
+
+.bot-controls select {
+  min-height: 32px;
+  padding: 4px 8px;
+  border: 1px solid #345745;
+  border-radius: 7px;
+  background: #102a20;
+  color: #f4f4e9;
+  font: inherit;
+}
+
+.bot-remove {
+  min-height: 24px;
+  margin-top: 5px;
+  padding: 0 7px;
+  font-size: .65rem;
 }
 
 .phase-timer {
