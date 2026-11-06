@@ -1,0 +1,29 @@
+{
+  "name": "blackjack-browser-game",
+  "version": "1.2.1",
+  "description": "Браузерная игра в блэкджек на чистом JavaScript для игры по локальной сети",
+  "main": "src/server/index.js",
+  "private": true,
+  "scripts": {
+    "start": "node src/server/index.js",
+    "dev": "node --watch src/server/index.js",
+    "test": "jest --runInBand",
+    "test:watch": "jest --watch",
+    "test:coverage": "jest --runInBand --coverage",
+    "lint": "eslint .",
+    "lint:fix": "eslint . --fix"
+  },
+  "engines": {
+    "node": ">=18"
+  },
+  "license": "MIT",
+  "devDependencies": {
+    "@eslint/js": "^9.39.5",
+    "eslint": "^9.39.5",
+    "globals": "^17.13.0",
+    "jest": "^30.2.0"
+  },
+  "dependencies": {
+    "ws": "^8.18.3"
+  }
+}

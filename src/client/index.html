@@ -1,0 +1,102 @@
+<!doctype html>
+<html lang="ru">
+  <head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="theme-color" content="#103b2c">
+    <title>BlackJack — карточный стол</title>
+    <link rel="stylesheet" href="/styles/main.css">
+    <script defer src="/scripts/main.js"></script>
+  </head>
+  <body>
+    <main class="table">
+      <header class="topbar">
+        <a class="brand" href="#" aria-label="BlackJack — главная">BLACK<span>JACK</span></a>
+        <div class="connection-box">
+          <span id="connection-status" class="connection-status">Не подключено</span>
+          <div class="balance-box" id="balance-box" hidden>
+            <span class="eyebrow">Ваш баланс</span>
+            <strong><span id="balance">1000</span> <small>чипов</small></strong>
+          </div>
+        </div>
+      </header>
+
+      <section id="lobby" class="lobby-panel" aria-labelledby="lobby-title">
+        <h1 id="lobby-title">Блэкджек за одним столом</h1>
+        <p>Создайте стол и пригласите до пяти игроков по коду.</p>
+        <label for="player-name">Ваше имя</label>
+        <input id="player-name" type="text" maxlength="20" autocomplete="nickname" placeholder="Например, Алексей">
+        <div class="lobby-actions">
+          <button class="button button-primary" id="create-button" type="button">Создать стол</button>
+          <div class="join-controls">
+            <label for="room-code">Код стола</label>
+            <input id="room-code" type="text" maxlength="6" autocomplete="off" placeholder="ABC123">
+            <button class="button button-secondary" id="join-button" type="button">Подключиться</button>
+          </div>
+        </div>
+        <p class="network-help">Игрокам в вашей сети откройте адрес этого компьютера в браузере.</p>
+        <div id="lobby-message" class="lobby-message" role="status" aria-live="polite"></div>
+      </section>
+
+      <section id="game-view" hidden>
+        <div class="room-bar">
+          <span>Код стола: <strong id="room-code-display"></strong></span>
+          <div class="room-actions">
+            <span id="phase-timer" class="phase-timer" aria-live="polite"></span>
+            <span id="seat-count"></span>
+            <button class="button button-ghost" id="rebuy-button" type="button" hidden>Докупить фишки</button>
+            <button class="button button-ghost" id="leave-button" type="button">Выйти из-за стола</button>
+          </div>
+        </div>
+        <section id="seats" class="seats" aria-label="Игроки за столом"></section>
+        <section class="game-area" aria-label="Игровой стол">
+          <div class="table-heading">
+            <h1>Блэкджек</h1>
+            <p>Наберите больше очков, чем дилер, но не больше 21.</p>
+          </div>
+          <section class="dealer zone" aria-labelledby="dealer-title">
+            <div class="zone-title">
+              <h2 id="dealer-title">Дилер</h2>
+              <span class="score" id="dealer-score"></span>
+            </div>
+            <div class="cards" id="dealer-cards" aria-live="polite"></div>
+          </section>
+
+          <section class="player zone" aria-label="Руки игроков">
+            <div id="player-hands" class="player-hands"></div>
+          </section>
+
+          <div class="status" id="message" role="status" aria-live="polite">
+            Ожидаем начала игры.
+          </div>
+        </section>
+
+        <footer class="controls">
+          <div class="bet-controls">
+            <label for="bet">Ваша ставка</label>
+            <div class="bet-input">
+              <input id="bet" type="number" min="0" step="1" value="0" inputmode="numeric" disabled>
+              <span>чипов</span>
+            </div>
+            <div class="chip-controls" aria-label="Добавить к ставке">
+              <button class="button button-chip" id="chip-10" type="button" disabled>+10</button>
+              <button class="button button-chip" id="chip-25" type="button" disabled>+25</button>
+              <button class="button button-chip" id="chip-50" type="button" disabled>+50</button>
+              <button class="button button-chip" id="bet-clear" type="button" disabled>0</button>
+            </div>
+            <button class="button button-primary" id="ready-button" type="button" disabled>Готов</button>
+          </div>
+          <div class="action-controls" aria-label="Игровые действия">
+            <button class="button button-secondary" id="hit-button" type="button" disabled>Еще карту</button>
+            <button class="button button-secondary" id="stand-button" type="button" disabled>Хватит</button>
+            <button class="button button-secondary" id="double-button" type="button" disabled>Удвоить</button>
+            <button class="button button-secondary" id="split-button" type="button" disabled>Сплит</button>
+          </div>
+        </footer>
+      </section>
+      <p class="footnote">Играйте ответственно. Здесь используются только бесплатные чипы.</p>
+    </main>
+    <div class="round-result" id="round-result" aria-hidden="true"></div>
+    <div class="app-error" id="app-error" role="alert" aria-live="assertive" hidden></div>
+  </body>
+</html>
