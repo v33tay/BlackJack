@@ -1,6 +1,7 @@
 "use strict";
 
 const { createBlackjackServer } = require("../../src/server/app");
+const { createExactDeck } = require("../helpers/deck");
 const {
   WebSocket,
   openClient,
@@ -20,7 +21,10 @@ describe("Blackjack client-server", () => {
     application = createBlackjackServer({
       port: 0,
       host: "127.0.0.1",
-      managerOptions: { logger: silent },
+      managerOptions: {
+        logger: silent,
+        deckFactory: () => createExactDeck(["10", "6", "7", "10", "2", "10"])
+      },
       webSocketOptions: { logger: silent }
     });
     address = await application.listen();
@@ -110,22 +114,48 @@ describe("Blackjack client-server", () => {
     expect(guestState.state.phase).toBe("betting");
   });
 
-  test("starts the round when every player is ready", async () => {
+  test("starts the round only after every player is ready", async () => {
     const host = await connect();
     const created = waitForMessage(host, (message) => message.type === "state");
     host.send(JSON.stringify({ type: "create", name: "Хозяин" }));
     const hostState = await created;
 
-    const started = waitForMessage(host, (message) =>
-      message.type === "state" && message.state.phase === "player");
+    const guest = await connect();
+    const hostSeated = waitForMessage(host, (message) =>
+      message.type === "state" && message.state.players.length === 2);
+    const guestJoined = waitForMessage(guest, (message) => message.type === "state");
+    guest.send(JSON.stringify({ type: "join", code: hostState.state.code, name: "Гость" }));
+    await Promise.all([hostSeated, guestJoined]);
+
+    const hostBet = waitForMessage(host, (message) =>
+      message.type === "state" && message.state.viewer.bet === 50);
     host.send(JSON.stringify({ type: "bet", amount: 50 }));
+    await hostBet;
+
+    const hostReady = waitForMessage(host, (message) =>
+      message.type === "state" && message.state.viewer.ready);
     host.send(JSON.stringify({ type: "ready" }));
-    const playingState = await started;
+    const waitingState = await hostReady;
+    expect(waitingState.state.phase).toBe("betting");
+    expect(waitingState.state.players).toHaveLength(2);
+
+    const guestBet = waitForMessage(guest, (message) =>
+      message.type === "state" && message.state.viewer.bet === 50);
+    guest.send(JSON.stringify({ type: "bet", amount: 50 }));
+    await guestBet;
+
+    const hostPlaying = waitForMessage(host, (message) =>
+      message.type === "state" && message.state.phase === "player");
+    const guestPlaying = waitForMessage(guest, (message) =>
+      message.type === "state" && message.state.phase === "player");
+    guest.send(JSON.stringify({ type: "ready" }));
+    const [playingState, guestState] = await Promise.all([hostPlaying, guestPlaying]);
 
     expect(playingState.state.currentPlayerId).toBe(hostState.state.viewer.id);
     expect(playingState.state.viewer.canHit).toBe(true);
-    expect(playingState.state.players[0].hands[0].bet).toBe(50);
+    expect(playingState.state.players.map((player) => player.hands[0].bet)).toEqual([50, 50]);
     expect(playingState.state.timer.remainingMs).toBeGreaterThan(0);
+    expect(guestState.state.phase).toBe("player");
   });
 
   test("reports malformed commands and unknown room codes instead of disconnecting", async () => {

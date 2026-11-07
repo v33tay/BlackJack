@@ -5,10 +5,12 @@ const path = require("node:path");
 const vm = require("node:vm");
 const { TestElement, createDom, createTimers, createStorage } = require("./dom");
 
-const CLIENT_SOURCE = fs.readFileSync(
-  path.join(__dirname, "../../src/client/scripts/main.js"),
-  "utf8"
-);
+const CLIENT_PATH = path.resolve(__dirname, "../../src/client/scripts/main.js");
+const CLIENT_SOURCE = fs.readFileSync(CLIENT_PATH, "utf8");
+const clientInstrumenter = require("istanbul-lib-instrument").createInstrumenter({
+  coverageVariable: "__coverage__"
+});
+const INSTRUMENTED_CLIENT_SOURCE = clientInstrumenter.instrumentSync(CLIENT_SOURCE, CLIENT_PATH);
 
 const ELEMENT_IDS = [
   "connection-status", "balance-box", "balance", "lobby", "lobby-message",
@@ -62,20 +64,23 @@ function createClientApp() {
   const document = createDom(elements);
   const timers = createTimers();
   const { storage, localStorage } = createStorage();
-
-  vm.runInNewContext(CLIENT_SOURCE, {
+  const sandbox = {
     window: { setTimeout: timers.setTimeout, clearTimeout: timers.clearTimeout },
     document,
     localStorage,
     WebSocket: MockWebSocket,
-    location: { protocol: "http:", host: "localhost:3000" }
-  });
+    location: { protocol: "http:", host: "localhost:3000" },
+    __coverage__: global.__coverage__ || (global.__coverage__ = {})
+  };
+
+  vm.runInNewContext(INSTRUMENTED_CLIENT_SOURCE, sandbox);
 
   return {
     elements,
     timers: timers.timers,
     storage,
     document,
+    coverage: sandbox.__coverage__[CLIENT_PATH],
     socket: () => MockWebSocket.instances[0],
     lastSocket: () => MockWebSocket.instances[MockWebSocket.instances.length - 1]
   };

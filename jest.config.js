@@ -2,8 +2,9 @@
 
 module.exports = {
   testEnvironment: "node",
+  coverageProvider: "babel",
   roots: ["<rootDir>/tests"],
-  collectCoverageFrom: ["src/server/**/*.js"],
+  collectCoverageFrom: ["src/server/**/*.js", "src/client/**/*.js"],
   coverageReporters: ["text-summary", "lcov"],
   coverageThreshold: {
     global: {
