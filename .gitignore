@@ -1,19 +1,37 @@
+# Dependencies
 node_modules/
+
+# Test and coverage output
 coverage/
+
+# Environment and secrets
 .env
 .env.*
 !.env.example
-.env.local
-.env.development.local
-.env.test.local
-.env.production.local
 *.pem
 *.key
 *.crt
 *.p12
 *.pfx
+
+# Logs
 *.log
 npm-debug.log*
+
+# Editors and OS
 .vscode/
 .idea/
 .DS_Store
+Thumbs.db
+Desktop.ini
+*.swp
+*~
+.history/
+
+# Tool caches and temporary files
+.eslintcache
+*.tmp
+tmp/
+
+# Kilo local state
+.kilo/
