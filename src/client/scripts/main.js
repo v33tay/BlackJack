@@ -84,8 +84,15 @@
     }
   }
 
-  function setStatus(text) {
+  function setStatus(text, state = null) {
     elements.connectionStatus.textContent = text;
+    let status = state;
+    if (!status) {
+      if (/нет соединения|ошибк|потеряно|не подключено/i.test(text)) status = "offline";
+      else if (/подключено/i.test(text)) status = "online";
+      else status = "pending";
+    }
+    elements.connectionStatus.dataset.status = status;
   }
 
   function showError(message) {
@@ -176,7 +183,7 @@
       return;
     }
     if (message.type === "queued") {
-      setStatus(message.message || "Ожидаете свободного места за столом.");
+      setStatus(message.message || "Ожидаете свободного места за столом.", "pending");
       return;
     }
     if (message.type === "state") {

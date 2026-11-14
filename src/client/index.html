@@ -13,7 +13,7 @@
       <header class="topbar">
         <a class="brand" href="#" aria-label="BlackJack — главная">BLACK<span>JACK</span></a>
         <div class="connection-box">
-          <span id="connection-status" class="connection-status">Не подключено</span>
+          <span id="connection-status" class="connection-status" data-status="offline">Не подключено</span>
           <div class="balance-box" id="balance-box" hidden>
             <span class="eyebrow">Ваш баланс</span>
             <strong><span id="balance">1000</span> <small>чипов</small></strong>
@@ -21,21 +21,38 @@
         </div>
       </header>
 
-      <section id="lobby" class="lobby-panel" aria-labelledby="lobby-title">
-        <h1 id="lobby-title">Блэкджек за одним столом</h1>
-        <p>Создайте стол и пригласите до пяти игроков по коду.</p>
-        <label for="player-name">Ваше имя</label>
-        <input id="player-name" type="text" maxlength="20" autocomplete="nickname" placeholder="Например, Алексей">
-        <div class="lobby-actions">
-          <button class="button button-primary" id="create-button" type="button">Создать стол</button>
-          <div class="join-controls">
-            <label for="room-code">Код стола</label>
-            <input id="room-code" type="text" maxlength="6" autocomplete="off" placeholder="ABC123">
-            <button class="button button-secondary" id="join-button" type="button">Подключиться</button>
-          </div>
+      <section id="lobby" class="lobby-screen" aria-labelledby="lobby-title">
+        <div class="lobby-content">
+          <section class="welcome" aria-label="Приветствие">
+            <p class="welcome-kicker">Карты на стол. Компания собралась.</p>
+            <h1>Black<span>Jack</span></h1>
+            <p class="welcome-copy">Создайте приватный стол и позовите друзей. Или присоединитесь к компании по коду — партия начнётся, когда все будут готовы.</p>
+            <div class="welcome-note">До шести игроков за одним столом</div>
+          </section>
+
+          <section class="lobby-panel" aria-labelledby="lobby-title">
+            <div class="lobby-emblem" aria-hidden="true">♠</div>
+            <h2 id="lobby-title">Добро пожаловать</h2>
+            <p class="lobby-subtitle">Укажите имя, чтобы занять место за столом.</p>
+
+            <form class="lobby-form" onsubmit="return false">
+              <label for="player-name">Ваше имя</label>
+              <input id="player-name" type="text" maxlength="20" autocomplete="nickname" placeholder="Например, Алексей">
+              <button class="button button-primary create-room" id="create-button" type="button">Создать стол</button>
+
+              <div class="join-divider" aria-hidden="true">или войти по коду</div>
+
+              <label for="room-code">Код стола</label>
+              <div class="join-row">
+                <input class="room-code" id="room-code" type="text" maxlength="6" autocomplete="off" placeholder="ABC123" aria-label="Код стола">
+                <button class="button button-secondary join-room" id="join-button" type="button">Подключиться</button>
+              </div>
+            </form>
+
+            <p class="network-help">Играете по локальной сети? Откройте адрес этого компьютера.</p>
+            <p id="lobby-message" class="lobby-message" role="status" aria-live="polite"></p>
+          </section>
         </div>
-        <p class="network-help">Игрокам в вашей сети откройте адрес этого компьютера в браузере.</p>
-        <div id="lobby-message" class="lobby-message" role="status" aria-live="polite"></div>
       </section>
 
       <section id="game-view" hidden>

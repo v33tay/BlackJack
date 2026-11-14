@@ -1,0 +1,544 @@
+<!doctype html>
+<html lang="ru">
+  <head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="theme-color" content="#081c16">
+    <title>BlackJack — десктопный игровой стол</title>
+    <link rel="stylesheet" href="../styles/main.css">
+    <style>
+      body {
+        min-width: 800px;
+        min-height: 100vh;
+        padding: clamp(16px, 2vw, 30px);
+        display: flex;
+        flex-direction: column;
+      }
+
+      .desktop-game {
+        width: min(100%, 1600px);
+        height: calc(100vh - 2 * clamp(16px, 2vw, 30px));
+        min-height: 650px;
+        margin: auto;
+        display: flex;
+        flex-direction: column;
+      }
+
+      .game-header,
+      .table-meta,
+      .game-footer,
+      .player-info,
+      .bet-display {
+        display: flex;
+        align-items: center;
+      }
+
+      .game-header {
+        justify-content: space-between;
+        padding: 2px 4px 16px;
+      }
+
+      .header-right {
+        display: flex;
+        align-items: center;
+        gap: 24px;
+      }
+
+      .connection-state {
+        color: var(--muted);
+        font-size: .78rem;
+      }
+
+      .connection-state::before {
+        width: 7px;
+        height: 7px;
+        margin-right: 7px;
+        border-radius: 50%;
+        background: #79d39b;
+        content: "";
+        display: inline-block;
+      }
+
+      .balance-display {
+        color: var(--gold);
+        font-size: 1.04rem;
+        font-weight: 800;
+      }
+
+      .balance-display small {
+        color: var(--muted);
+        font-size: .7rem;
+        font-weight: 500;
+      }
+
+      .table-meta {
+        justify-content: space-between;
+        min-height: 38px;
+        margin: 0 5px 10px;
+        color: var(--muted);
+        font-size: .82rem;
+      }
+
+      .table-meta strong {
+        margin-left: 5px;
+        color: var(--gold);
+        letter-spacing: .12em;
+      }
+
+      .table-tools {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+      }
+
+      .round-timer {
+        min-width: 92px;
+        color: var(--gold);
+        font-variant-numeric: tabular-nums;
+        text-align: right;
+      }
+
+      .player-seats {
+        display: grid;
+        grid-template-columns: repeat(6, minmax(0, 1fr));
+        gap: 10px;
+        margin: 0 0 14px;
+      }
+
+      .player-seat {
+        min-width: 0;
+        min-height: 72px;
+        padding: 10px 12px;
+        border: 1px solid rgba(220, 194, 123, .2);
+        border-radius: 11px;
+        background: rgba(16, 42, 32, .72);
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        gap: 4px;
+      }
+
+      .player-seat.current {
+        border-color: rgba(226, 194, 123, .75);
+        box-shadow: 0 0 18px rgba(226, 194, 123, .1);
+      }
+
+      .player-seat strong {
+        overflow: hidden;
+        color: #f4f4e9;
+        font-size: .85rem;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+      }
+
+      .player-seat span {
+        color: var(--muted);
+        font-size: .72rem;
+      }
+
+      .player-seat .seat-status {
+        color: var(--gold);
+        font-size: .68rem;
+      }
+
+      .player-seat.empty {
+        border-style: dashed;
+        background: rgba(16, 42, 32, .35);
+        color: #819589;
+        align-items: center;
+        text-align: center;
+      }
+
+      .felt-table {
+        position: relative;
+        flex: 1;
+        min-height: 360px;
+        overflow: hidden;
+        padding: 24px clamp(32px, 7vw, 110px);
+        border: 1px solid rgba(220, 194, 123, .32);
+        border-radius: 46% / 26%;
+        background:
+          radial-gradient(ellipse at 50% 46%, rgba(40, 111, 72, .74), transparent 72%),
+          linear-gradient(145deg, #155438, #0e3829 68%, #0a2e22);
+        box-shadow: inset 0 0 90px rgba(0, 0, 0, .29), 0 22px 70px rgba(0, 0, 0, .23);
+        display: grid;
+        grid-template-columns: 1fr minmax(320px, 1.1fr) 1fr;
+        grid-template-rows: auto 1fr auto;
+        align-items: center;
+      }
+
+      .table-brand {
+        grid-column: 1 / -1;
+        text-align: center;
+      }
+
+      .table-brand h1 {
+        margin: 0;
+        color: rgba(244, 244, 233, .93);
+        font-family: Georgia, "Times New Roman", serif;
+        font-size: clamp(1.8rem, 3vw, 2.6rem);
+        font-weight: 500;
+        letter-spacing: .06em;
+      }
+
+      .table-brand p {
+        margin: 6px 0 0;
+        color: #c5d5c8;
+        font-size: .82rem;
+      }
+
+      .dealer-zone {
+        grid-column: 2;
+        grid-row: 2;
+        align-self: start;
+        padding-top: 12px;
+        text-align: center;
+      }
+
+      .zone-heading {
+        margin: 0 0 11px;
+        color: #e5ecdf;
+        font-family: Georgia, "Times New Roman", serif;
+        font-size: 1rem;
+        font-weight: 500;
+      }
+
+      .cards {
+        min-height: 112px;
+        display: flex;
+        justify-content: center;
+        gap: 9px;
+      }
+
+      .playing-card {
+        width: 76px;
+        height: 106px;
+        flex: 0 0 auto;
+        padding: 8px;
+        border: 1px solid #e8e6dc;
+        border-radius: 8px;
+        background: #f8f7f0;
+        box-shadow: 0 6px 12px rgba(0, 0, 0, .24);
+        color: #19251d;
+        display: flex;
+        flex-direction: column;
+        justify-content: space-between;
+        font-family: Georgia, serif;
+        font-size: 1.1rem;
+        font-weight: 700;
+        text-align: left;
+      }
+
+      .playing-card.red {
+        color: #bf3340;
+      }
+
+      .playing-card .suit {
+        align-self: center;
+        font-size: 1.9rem;
+      }
+
+      .playing-card .bottom {
+        align-self: flex-end;
+        transform: rotate(180deg);
+      }
+
+      .playing-card.hidden-card {
+        border-color: rgba(255, 255, 255, .65);
+        background:
+          repeating-linear-gradient(45deg, transparent 0 5px, rgba(255, 255, 255, .12) 5px 7px),
+          #183a58;
+        box-shadow: inset 0 0 0 4px #183a58, inset 0 0 0 5px rgba(255, 255, 255, .65), 0 6px 12px rgba(0, 0, 0, .24);
+      }
+
+      .card-score {
+        margin-top: 5px;
+        color: var(--gold);
+        font-weight: 700;
+      }
+
+      .hand-zone {
+        grid-column: 1 / -1;
+        grid-row: 3;
+        align-self: end;
+        padding-bottom: 14px;
+        text-align: center;
+      }
+
+      .player-hand {
+        display: inline-flex;
+        flex-direction: column;
+        align-items: center;
+        padding: 10px 26px 14px;
+        border: 1px solid rgba(226, 194, 123, .54);
+        border-radius: 16px;
+        background: rgba(5, 30, 21, .2);
+      }
+
+      .hand-title {
+        margin-bottom: 8px;
+        color: #e5ecdf;
+        font-size: .84rem;
+      }
+
+      .hand-cards .playing-card + .playing-card {
+        margin-left: -43px;
+      }
+
+      .game-message {
+        position: absolute;
+        right: 20px;
+        bottom: 16px;
+        left: 20px;
+        color: #f2d99a;
+        font-size: .84rem;
+        text-align: center;
+        pointer-events: none;
+      }
+
+      .game-footer {
+        justify-content: space-between;
+        gap: 22px;
+        padding: 14px 4px 2px;
+      }
+
+      .bet-panel,
+      .action-panel {
+        min-height: 86px;
+        padding: 12px 15px;
+        border: 1px solid rgba(220, 194, 123, .23);
+        border-radius: 13px;
+        background: rgba(13, 41, 31, .82);
+        display: flex;
+        align-items: center;
+        gap: 12px;
+      }
+
+      .bet-panel {
+        flex: 1;
+      }
+
+      .bet-column {
+        display: flex;
+        flex-direction: column;
+        gap: 8px;
+      }
+
+      .bet-label {
+        color: var(--muted);
+        font-size: .74rem;
+      }
+
+      .bet-display {
+        min-width: 120px;
+        justify-content: space-between;
+        gap: 6px;
+        color: #fff;
+        font-size: .85rem;
+        font-weight: 700;
+      }
+
+      .bet-display small {
+        color: var(--muted);
+        font-size: .7rem;
+        font-weight: 500;
+      }
+
+      .bet-chips,
+      .action-buttons {
+        display: flex;
+        gap: 7px;
+      }
+
+      .game-footer .button {
+        min-height: 40px;
+        padding: 0 12px;
+        white-space: nowrap;
+      }
+
+      .bet-chips .button {
+        min-width: 48px;
+      }
+
+      .ready-button {
+        min-width: 88px;
+      }
+
+      .action-panel {
+        flex: 0 0 auto;
+      }
+
+      @media (max-width: 1180px) {
+        body {
+          min-width: 760px;
+        }
+
+        .desktop-game {
+          min-height: 600px;
+        }
+
+        .felt-table {
+          padding-right: 48px;
+          padding-left: 48px;
+          grid-template-columns: 1fr minmax(270px, 1.2fr) 1fr;
+        }
+
+        .game-footer {
+          gap: 12px;
+        }
+
+        .bet-panel,
+        .action-panel {
+          gap: 8px;
+          padding: 10px;
+        }
+
+        .bet-display {
+          min-width: 95px;
+        }
+
+        .game-footer .button {
+          padding: 0 9px;
+        }
+      }
+
+      @media (max-height: 760px) {
+        .desktop-game {
+          min-height: 0;
+        }
+
+        .game-header {
+          padding-bottom: 8px;
+        }
+
+        .table-meta {
+          margin-bottom: 6px;
+        }
+
+        .player-seats {
+          gap: 7px;
+          margin-bottom: 8px;
+        }
+
+        .player-seat {
+          min-height: 58px;
+          padding: 7px 9px;
+        }
+
+        .felt-table {
+          min-height: 300px;
+          padding-top: 12px;
+          padding-bottom: 12px;
+        }
+
+        .dealer-zone {
+          padding-top: 5px;
+        }
+
+        .playing-card {
+          width: 66px;
+          height: 90px;
+        }
+
+        .cards {
+          min-height: 94px;
+        }
+
+        .player-hand {
+          padding: 7px 20px 10px;
+        }
+
+        .game-footer {
+          padding-top: 9px;
+        }
+
+        .bet-panel,
+        .action-panel {
+          min-height: 72px;
+          padding-top: 8px;
+          padding-bottom: 8px;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <main class="desktop-game" aria-label="Предварительный просмотр десктопного игрового стола">
+      <header class="game-header">
+        <a class="brand" href="#" aria-label="BlackJack — главная">BLACK<span>JACK</span></a>
+        <div class="header-right">
+          <span class="connection-state">Подключено</span>
+          <span class="balance-display">990 <small>чипов</small></span>
+        </div>
+      </header>
+
+      <div class="table-meta">
+        <span>Код стола:<strong>E6CE88</strong></span>
+        <div class="table-tools">
+          <span class="round-timer">Ставки: 08 с</span>
+          <span>3 / 6 игроков</span>
+          <button class="button button-ghost" type="button">Выйти из-за стола</button>
+        </div>
+      </div>
+
+      <section class="player-seats" aria-label="Игроки за столом">
+        <div class="player-seat current"><strong>Вы · Алексей</strong><span>990 чипов</span><span class="seat-status">Ставка 10</span></div>
+        <div class="player-seat"><strong>Анна</strong><span>1250 чипов</span><span class="seat-status">Готова</span></div>
+        <div class="player-seat"><strong>Макс</strong><span>740 чипов</span><span class="seat-status">Ставка 25</span></div>
+        <div class="player-seat empty">Свободное место</div>
+        <div class="player-seat empty">Свободное место</div>
+        <div class="player-seat empty">Свободное место</div>
+      </section>
+
+      <section class="felt-table" aria-label="Игровой стол">
+        <div class="table-brand">
+          <h1>BlackJack</h1>
+          <p>Наберите больше очков, чем дилер, но не больше 21</p>
+        </div>
+
+        <section class="dealer-zone" aria-label="Карты дилера">
+          <h2 class="zone-heading">Дилер · 8</h2>
+          <div class="cards">
+            <div class="playing-card red" aria-label="8 бубен"><span>8</span><span class="suit">♦</span><span class="bottom">8</span></div>
+            <div class="playing-card hidden-card" aria-label="Закрытая карта дилера"></div>
+          </div>
+        </section>
+
+        <section class="hand-zone" aria-label="Рука игрока">
+          <div class="player-hand">
+            <div class="hand-title">Алексей · 14 очков</div>
+            <div class="cards hand-cards">
+              <div class="playing-card" aria-label="4 пик"><span>4</span><span class="suit">♠</span><span class="bottom">4</span></div>
+              <div class="playing-card red" aria-label="Дама червей"><span>Q</span><span class="suit">♥</span><span class="bottom">Q</span></div>
+            </div>
+          </div>
+        </section>
+        <div class="game-message" role="status">Ваш ход. Возьмите карту или остановитесь.</div>
+      </section>
+
+      <footer class="game-footer">
+        <section class="bet-panel" aria-label="Ставка">
+          <div class="bet-column">
+            <span class="bet-label">Ваша ставка</span>
+            <span class="bet-display">10 <small>чипов</small></span>
+          </div>
+          <div class="bet-chips" aria-label="Изменить ставку">
+            <button class="button button-chip" type="button">+10</button>
+            <button class="button button-chip" type="button">+25</button>
+            <button class="button button-chip" type="button">+50</button>
+            <button class="button button-chip" type="button" aria-label="Сбросить ставку">0</button>
+          </div>
+          <button class="button button-primary ready-button" type="button">Готов</button>
+        </section>
+
+        <section class="action-panel" aria-label="Игровые действия">
+          <div class="action-buttons">
+            <button class="button button-secondary" type="button">Ещё карту</button>
+            <button class="button button-secondary" type="button">Хватит</button>
+            <button class="button button-secondary" type="button">Удвоить</button>
+            <button class="button button-secondary" type="button">Сплит</button>
+          </div>
+        </section>
+      </footer>
+    </main>
+  </body>
+</html>

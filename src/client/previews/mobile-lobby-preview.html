@@ -1,0 +1,351 @@
+<!doctype html>
+<html lang="ru">
+  <head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+    <meta name="theme-color" content="#081c16">
+    <title>BlackJack — мобильное лобби</title>
+    <link rel="stylesheet" href="../styles/main.css">
+    <style>
+      body {
+        min-width: 320px;
+        min-height: 100vh;
+        margin: 0;
+        padding: 16px;
+        display: grid;
+        place-items: center;
+        background:
+          radial-gradient(ellipse at 50% 42%, rgba(41, 96, 67, .22), transparent 58%),
+          #081c16;
+      }
+
+      .lobby-preview {
+        width: 402px;
+        height: 874px;
+        min-height: 0;
+        margin: 0 auto;
+        padding: max(12px, env(safe-area-inset-top)) 18px max(12px, env(safe-area-inset-bottom));
+        overflow: hidden;
+        border: 1px solid rgba(226, 194, 123, .38);
+        border-radius: 24px;
+        background:
+          radial-gradient(ellipse at 50% 42%, rgba(41, 96, 67, .22), transparent 58%),
+          #081c16;
+        display: flex;
+        flex-direction: column;
+      }
+
+      .lobby-preview-header {
+        min-height: 44px;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+      }
+
+      .lobby-preview-header .brand {
+        font-size: 1rem;
+      }
+
+      .preview-connection {
+        display: inline-flex;
+        align-items: center;
+        gap: 7px;
+        color: var(--muted);
+        font-size: .74rem;
+      }
+
+      .preview-connection::before {
+        width: 8px;
+        height: 8px;
+        border-radius: 50%;
+        background: #79d39b;
+        box-shadow: 0 0 10px rgba(121, 211, 155, .55);
+        content: "";
+      }
+
+      .lobby-preview-panel {
+        width: 100%;
+        margin: auto 0;
+        padding: 28px 22px 22px;
+        border: 1px solid rgba(220, 194, 123, .29);
+        border-radius: 20px;
+        background: linear-gradient(145deg, rgba(21, 84, 56, .78), rgba(10, 46, 34, .9));
+        box-shadow: 0 20px 60px rgba(0, 0, 0, .22);
+        text-align: center;
+      }
+
+      .lobby-preview-mark {
+        width: 100%;
+        min-height: 82px;
+        margin: 0 auto 12px;
+        border: 0;
+        border-radius: 0;
+        background: transparent;
+        color: var(--gold);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-family: Georgia, "Times New Roman", serif;
+        font-size: clamp(2.5rem, 12vw, 3.25rem);
+        font-weight: 700;
+        letter-spacing: .055em;
+        text-shadow: 0 2px 20px rgba(226, 194, 123, .22);
+      }
+
+      .lobby-preview-mark span {
+        color: #f4f4e9;
+      }
+
+      .preview-aces {
+        height: 88px;
+        margin: 0 auto 20px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        padding-right: 20px;
+      }
+
+      .preview-ace {
+        width: 50px;
+        height: 70px;
+        margin-right: -19px;
+        padding: 5px 5px 4px;
+        border: 1px solid #e8e6dc;
+        border-radius: 6px;
+        background: #f8f7f0;
+        box-shadow: 0 5px 12px rgba(0, 0, 0, .28);
+        color: #19251d;
+        display: flex;
+        flex-direction: column;
+        justify-content: space-between;
+        font-family: Georgia, "Times New Roman", serif;
+        font-size: .85rem;
+        font-weight: 700;
+        text-align: left;
+        transform: rotate(var(--tilt));
+      }
+
+      .preview-ace.red {
+        color: #bf3340;
+      }
+
+      .preview-ace span:last-child {
+        align-self: flex-end;
+        transform: rotate(180deg);
+      }
+
+      .preview-ace:nth-child(1) { z-index: 1; }
+      .preview-ace:nth-child(2) { z-index: 2; }
+      .preview-ace:nth-child(3) { z-index: 3; }
+      .preview-ace:nth-child(4) { z-index: 4; }
+
+      .lobby-preview-intro {
+        max-width: 340px;
+        margin: 0 auto 22px;
+        color: var(--muted);
+        font-size: .88rem;
+        line-height: 1.45;
+      }
+
+      .lobby-preview-form {
+        text-align: left;
+      }
+
+      .lobby-preview-form label {
+        display: block;
+        margin: 0 0 7px;
+        color: var(--muted);
+        font-size: .78rem;
+      }
+
+      .lobby-preview-form input {
+        width: 100%;
+        min-width: 0;
+        min-height: 48px;
+        padding: 11px 13px;
+        border: 1px solid #345745;
+        border-radius: 9px;
+        outline: none;
+        background: #102a20;
+        color: #fff;
+        font: inherit;
+      }
+
+      .lobby-preview-form input::placeholder {
+        color: #819589;
+      }
+
+      .lobby-preview-form input:focus-visible {
+        border-color: var(--gold);
+        box-shadow: 0 0 0 3px rgba(226, 194, 123, .15);
+      }
+
+      .lobby-create {
+        width: 100%;
+        min-height: 50px;
+        margin-top: 12px;
+        font-size: .92rem;
+      }
+
+      .lobby-or {
+        margin: 18px 0;
+        color: #819589;
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        font-size: .72rem;
+      }
+
+      .lobby-or::before,
+      .lobby-or::after {
+        height: 1px;
+        flex: 1;
+        background: rgba(220, 194, 123, .18);
+        content: "";
+      }
+
+      .lobby-join-row {
+        display: grid;
+        grid-template-columns: minmax(0, 1fr) auto;
+        gap: 8px;
+      }
+
+      .lobby-code {
+        text-transform: uppercase;
+        letter-spacing: .12em;
+      }
+
+      .lobby-join {
+        min-height: 48px;
+        padding: 0 14px;
+        white-space: nowrap;
+      }
+
+      .lobby-preview-help {
+        margin: 20px 0 0;
+        color: #a9bbae;
+        font-size: .76rem;
+        line-height: 1.4;
+        text-align: center;
+      }
+
+      .lobby-preview-message {
+        min-height: 1.2em;
+        margin: 12px 0 0;
+        color: #ffd18a;
+        font-size: .78rem;
+        text-align: center;
+      }
+
+      .lobby-preview-footnote {
+        margin: 0;
+        padding-top: 12px;
+        color: #809689;
+        font-size: .68rem;
+        text-align: center;
+      }
+
+      @media (max-width: 350px) {
+        .lobby-preview {
+          padding-right: 12px;
+          padding-left: 12px;
+        }
+
+        .lobby-preview-panel {
+          padding: 22px 16px 18px;
+        }
+
+        .lobby-join-row {
+          grid-template-columns: minmax(0, 1fr);
+        }
+
+        .lobby-join {
+          width: 100%;
+        }
+      }
+
+      @media (max-width: 433px), (max-height: 905px) {
+        body {
+          padding: 0;
+        }
+
+        .lobby-preview {
+          border-radius: 0;
+        }
+      }
+
+      @media (max-height: 700px) {
+        .lobby-preview {
+          height: 100vh;
+          height: 100svh;
+        }
+
+        .lobby-preview-mark {
+          min-height: 64px;
+          margin-bottom: 4px;
+          font-size: 2.35rem;
+        }
+
+        .preview-aces {
+          height: 70px;
+          margin-bottom: 10px;
+        }
+
+        .preview-ace {
+          width: 44px;
+          height: 62px;
+        }
+
+        .lobby-preview-intro {
+          margin-bottom: 14px;
+        }
+
+        .lobby-or {
+          margin: 12px 0;
+        }
+
+        .lobby-preview-help {
+          margin-top: 14px;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <main class="lobby-preview" aria-label="Предварительный просмотр мобильного лобби">
+      <header class="lobby-preview-header">
+        <a class="brand" href="#" aria-label="BlackJack — главная">BLACK<span>JACK</span></a>
+        <span class="preview-connection">Подключено</span>
+      </header>
+
+      <section class="lobby-preview-panel" aria-label="BlackJack: каре тузов и вход в игру">
+        <div class="lobby-preview-mark" aria-hidden="true">Black<span>Jack</span></div>
+        <div class="preview-aces" aria-label="Каре тузов">
+          <div class="preview-ace" style="--tilt: -12deg"><span>A</span><span>♠</span></div>
+          <div class="preview-ace red" style="--tilt: -4deg"><span>A</span><span>♥</span></div>
+          <div class="preview-ace red" style="--tilt: 4deg"><span>A</span><span>♦</span></div>
+          <div class="preview-ace" style="--tilt: 12deg"><span>A</span><span>♣</span></div>
+        </div>
+        <p class="lobby-preview-intro">Создайте стол и пригласите друзей или присоединитесь к игре по коду.</p>
+
+        <form class="lobby-preview-form" onsubmit="return false">
+          <label for="preview-player-name">Ваше имя</label>
+          <input id="preview-player-name" type="text" maxlength="20" autocomplete="nickname" placeholder="Например, Алексей">
+          <button class="button button-primary lobby-create" type="button">Создать стол</button>
+
+          <div class="lobby-or" aria-hidden="true">или войти к друзьям</div>
+
+          <label for="preview-room-code">Код стола</label>
+          <div class="lobby-join-row">
+            <input class="lobby-code" id="preview-room-code" type="text" maxlength="6" autocomplete="off" placeholder="ABC123" aria-label="Код стола">
+            <button class="button button-secondary lobby-join" type="button">Подключиться</button>
+          </div>
+        </form>
+
+        <p class="lobby-preview-help">Игрокам в вашей сети достаточно открыть адрес этого компьютера.</p>
+        <p class="lobby-preview-message" role="status" aria-live="polite"></p>
+      </section>
+
+      <p class="lobby-preview-footnote">Играйте ответственно. Здесь используются только бесплатные чипы.</p>
+    </main>
+  </body>
+</html>

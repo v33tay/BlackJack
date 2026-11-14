@@ -1,0 +1,485 @@
+<!doctype html>
+<html lang="ru">
+  <head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+    <meta name="theme-color" content="#081c16">
+    <title>BlackJack — мобильный макет</title>
+    <link rel="stylesheet" href="../styles/main.css">
+    <style>
+      body {
+        min-width: 320px;
+        min-height: 100vh;
+        padding: 0;
+        background: #081c16;
+      }
+
+      .mobile-preview {
+        width: min(100%, 520px);
+        min-height: 100vh;
+        margin: 0 auto;
+        padding: max(12px, env(safe-area-inset-top)) 14px calc(20px + env(safe-area-inset-bottom));
+        display: flex;
+        flex-direction: column;
+        gap: 12px;
+      }
+
+      .preview-header,
+      .preview-room,
+      .preview-player,
+      .preview-bet-row,
+      .preview-actions {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 10px;
+      }
+
+      .preview-header {
+        min-height: 42px;
+      }
+
+      .preview-header .brand {
+        font-size: 1rem;
+      }
+
+      .preview-balance {
+        color: var(--gold);
+        font-size: .92rem;
+        font-weight: 800;
+      }
+
+      .preview-room {
+        min-height: 42px;
+        padding: 0 12px;
+        border: 1px solid rgba(220, 194, 123, .2);
+        border-radius: 10px;
+        background: rgba(16, 42, 32, .78);
+        color: var(--muted);
+        font-size: .78rem;
+      }
+
+      .preview-room strong,
+      .preview-timer {
+        color: var(--gold);
+        font-variant-numeric: tabular-nums;
+      }
+
+      .preview-players {
+        display: grid;
+        grid-template-columns: repeat(4, minmax(0, 1fr));
+        gap: 7px;
+        width: 100%;
+      }
+
+      .preview-player {
+        min-width: 0;
+        min-height: 48px;
+        padding: 6px 4px;
+        border: 1px solid rgba(220, 194, 123, .24);
+        border-radius: 9px;
+        background: rgba(16, 42, 32, .68);
+        color: #e8e3d2;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        gap: 3px;
+        font-size: .72rem;
+        text-align: center;
+      }
+
+      .preview-player strong,
+      .preview-player span {
+        max-width: 100%;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+      }
+
+      .preview-player span {
+        color: var(--muted);
+        font-size: .65rem;
+      }
+
+      @media (max-height: 700px) {
+        .mobile-preview {
+          gap: 4px;
+          padding: max(6px, env(safe-area-inset-top)) 10px max(6px, env(safe-area-inset-bottom));
+        }
+
+        .preview-header {
+          min-height: 34px;
+        }
+
+        .preview-room {
+          min-height: 34px;
+          padding: 0 9px;
+        }
+
+        .preview-player {
+          min-height: 40px;
+          padding: 4px 3px;
+        }
+
+        .preview-table {
+          min-height: 0;
+          padding: 8px 8px;
+        }
+
+        .preview-table h1 {
+          font-size: 1.35rem;
+        }
+
+        .preview-subtitle,
+        .preview-footnote {
+          display: none;
+        }
+
+        .preview-zone-title {
+          margin: 2px 0 3px;
+          font-size: .82rem;
+        }
+
+        .preview-card {
+          width: 46px;
+          height: 64px;
+          padding: 4px;
+          font-size: .8rem;
+        }
+
+        .preview-card .center {
+          font-size: 1.2rem;
+        }
+
+        .preview-score {
+          margin-top: 2px;
+          font-size: .72rem;
+        }
+
+        .preview-divider {
+          margin: 5px 0 0;
+        }
+
+        .preview-status {
+          padding-top: 4px;
+          font-size: .76rem;
+        }
+
+        .preview-controls {
+          padding: 7px;
+        }
+
+        .preview-bet-row {
+          margin-bottom: 5px;
+        }
+
+        .preview-bet-chips {
+          gap: 5px;
+          margin-bottom: 5px;
+        }
+
+        .preview-controls .button {
+          min-height: 34px;
+          padding: 0 5px;
+          font-size: .76rem;
+        }
+
+        .preview-ready {
+          min-height: 36px !important;
+          margin-bottom: 5px;
+        }
+
+        .preview-actions {
+          gap: 5px;
+        }
+      }
+
+      @media (max-width: 350px) {
+        .preview-players {
+          grid-template-columns: repeat(2, minmax(0, 1fr));
+        }
+      }
+
+      .preview-table {
+        min-height: 310px;
+        flex: 1;
+        padding: 18px 12px;
+        border: 1px solid rgba(220, 194, 123, .3);
+        border-radius: 28px;
+        background:
+          radial-gradient(ellipse at center, rgba(40, 111, 72, .72), transparent 75%),
+          linear-gradient(145deg, #155438, #0e3829 68%, #0a2e22);
+        box-shadow: inset 0 0 55px rgba(0, 0, 0, .25);
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        text-align: center;
+      }
+
+      .preview-table h1 {
+        margin: 2px 0 0;
+        font-family: Georgia, serif;
+        font-size: 1.6rem;
+        font-weight: 500;
+      }
+
+      .preview-subtitle {
+        margin: 3px 0 10px;
+        color: #c5d5c8;
+        font-size: .78rem;
+      }
+
+      .preview-zone-title {
+        margin: 7px 0 8px;
+        color: #e5ecdf;
+        font-family: Georgia, serif;
+        font-size: .92rem;
+      }
+
+      .preview-cards {
+        display: flex;
+        justify-content: center;
+        gap: 7px;
+      }
+
+      .preview-card {
+        width: 58px;
+        height: 82px;
+        padding: 6px;
+        border: 1px solid #e8e6dc;
+        border-radius: 7px;
+        background: #f8f7f0;
+        box-shadow: 0 5px 10px rgba(0, 0, 0, .22);
+        color: #19251d;
+        display: flex;
+        flex-direction: column;
+        justify-content: space-between;
+        font-family: Georgia, serif;
+        font-size: .92rem;
+        font-weight: 700;
+        text-align: left;
+      }
+
+      .preview-card.red {
+        color: #bf3340;
+      }
+
+      .preview-card .center {
+        align-self: center;
+        font-size: 1.5rem;
+      }
+
+      .preview-card .bottom {
+        align-self: flex-end;
+        transform: rotate(180deg);
+      }
+
+      .preview-card.hidden-card {
+        border-color: rgba(255, 255, 255, .65);
+        background:
+          repeating-linear-gradient(45deg, transparent 0 5px, rgba(255, 255, 255, .12) 5px 7px),
+          #183a58;
+        box-shadow: inset 0 0 0 3px #183a58, inset 0 0 0 4px rgba(255, 255, 255, .65);
+      }
+
+      .preview-score {
+        margin-top: 5px;
+        color: var(--gold);
+        font-size: .82rem;
+        font-weight: 700;
+      }
+
+      .preview-divider {
+        width: min(100%, 260px);
+        height: 1px;
+        margin: 13px 0 3px;
+        background: rgba(255, 255, 255, .16);
+      }
+
+      .preview-status {
+        margin: auto 0 0;
+        padding-top: 12px;
+        color: #f2d99a;
+        font-size: .85rem;
+        line-height: 1.35;
+      }
+
+      .preview-controls {
+        padding: 12px;
+        border: 1px solid rgba(220, 194, 123, .28);
+        border-radius: 16px;
+        background: #0d291f;
+        box-shadow: 0 10px 32px rgba(0, 0, 0, .25);
+      }
+
+      .preview-bet-row {
+        margin-bottom: 9px;
+      }
+
+      .preview-bet-label {
+        color: var(--muted);
+        font-size: .82rem;
+      }
+
+      .preview-bet-value {
+        color: #fff;
+        font-size: .92rem;
+        font-weight: 700;
+      }
+
+      .preview-bet-chips {
+        display: grid;
+        grid-template-columns: repeat(4, minmax(0, 1fr));
+        gap: 7px;
+        margin-bottom: 9px;
+      }
+
+      .preview-controls .button {
+        min-width: 0;
+        min-height: 42px;
+        padding: 0 8px;
+        white-space: nowrap;
+      }
+
+      .preview-ready {
+        width: 100%;
+        min-height: 46px !important;
+        margin-bottom: 8px;
+        font-size: .92rem;
+      }
+
+      .preview-actions {
+        display: grid;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 7px;
+      }
+
+      .preview-footnote {
+        margin: 0;
+        color: #809689;
+        font-size: .68rem;
+        text-align: center;
+      }
+
+      @media (max-height: 900px) and (min-width: 351px) {
+        .mobile-preview {
+          gap: 6px;
+          padding-bottom: calc(8px + env(safe-area-inset-bottom));
+        }
+
+        .preview-table {
+          min-height: 0;
+          padding: 12px 10px;
+        }
+
+        .preview-subtitle {
+          margin-bottom: 5px;
+        }
+
+        .preview-zone-title {
+          margin: 4px 0 5px;
+        }
+
+        .preview-divider {
+          margin: 8px 0 1px;
+        }
+
+        .preview-controls {
+          padding: 10px;
+        }
+
+        .preview-controls .button {
+          min-height: 40px;
+        }
+
+        .preview-ready {
+          min-height: 42px !important;
+        }
+      }
+
+      @media (min-width: 430px) {
+        .mobile-preview {
+          padding-right: 20px;
+          padding-left: 20px;
+        }
+      }
+
+      @media (max-height: 700px) and (min-width: 430px) {
+        .mobile-preview {
+          gap: 8px;
+        }
+
+        .preview-table {
+          min-height: 270px;
+          padding-top: 12px;
+          padding-bottom: 12px;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <main class="mobile-preview" aria-label="Предварительный просмотр мобильного интерфейса">
+      <header class="preview-header">
+        <a class="brand" href="#" aria-label="BlackJack — главная">BLACK<span>JACK</span></a>
+        <span class="preview-balance">990 <small>чипов</small></span>
+      </header>
+
+      <div class="preview-room">
+        <span>Стол <strong>E6CE88</strong></span>
+        <span class="preview-timer">Ставки 08 с</span>
+      </div>
+
+      <section class="preview-players" aria-label="Другие игроки за столом">
+        <div class="preview-player"><strong>Анна</strong><span>Готова</span></div>
+        <div class="preview-player"><strong>Макс</strong><span>Ставка 25</span></div>
+        <div class="preview-player"><strong>Игорь</strong><span>Ставка 10</span></div>
+        <div class="preview-player"><strong>Ещё 2</strong><span>игрока</span></div>
+      </section>
+
+      <section class="preview-table" aria-label="Игровой стол">
+        <h1>Блэкджек</h1>
+        <p class="preview-subtitle">Наберите больше очков, чем дилер, но не больше 21.</p>
+
+        <h2 class="preview-zone-title">Дилер</h2>
+        <div class="preview-cards" aria-label="Карты дилера: 8 бубен и закрытая карта">
+          <div class="preview-card red"><span>8</span><span class="center">♦</span><span class="bottom">8</span></div>
+          <div class="preview-card hidden-card" aria-hidden="true"></div>
+        </div>
+        <div class="preview-score">8</div>
+
+        <div class="preview-divider"></div>
+
+        <h2 class="preview-zone-title">Ваши карты</h2>
+        <div class="preview-cards" aria-label="Ваши карты: 4 пик и дама червей">
+          <div class="preview-card"><span>4</span><span class="center">♠</span><span class="bottom">4</span></div>
+          <div class="preview-card red"><span>Q</span><span class="center">♥</span><span class="bottom">Q</span></div>
+        </div>
+        <div class="preview-score">14 очков</div>
+        <p class="preview-status">Сделайте ставку и нажмите «Готов».</p>
+      </section>
+
+      <section class="preview-controls" aria-label="Игровые действия">
+        <div class="preview-bet-row">
+          <span class="preview-bet-label">Ваша ставка</span>
+          <span class="preview-bet-value">10 чипов</span>
+        </div>
+        <div class="preview-bet-chips" aria-label="Изменение ставки">
+          <button class="button button-chip" type="button">+10</button>
+          <button class="button button-chip" type="button">+25</button>
+          <button class="button button-chip" type="button">+50</button>
+          <button class="button button-chip" type="button" aria-label="Сбросить ставку">Сброс</button>
+        </div>
+        <button class="button button-primary preview-ready" type="button">Готов</button>
+        <div class="preview-actions">
+          <button class="button button-secondary" type="button">Ещё карту</button>
+          <button class="button button-secondary" type="button">Хватит</button>
+          <button class="button button-secondary" type="button">Удвоить</button>
+          <button class="button button-secondary" type="button">Сплит</button>
+        </div>
+      </section>
+
+      <p class="preview-footnote">Играйте ответственно. Здесь используются только бесплатные чипы.</p>
+    </main>
+  </body>
+</html>
