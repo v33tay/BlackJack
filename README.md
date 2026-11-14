@@ -80,7 +80,7 @@ BlackJack/
 ├── src/server/      HTTP, WebSocket, комнаты и игровая логика
 ├── tests/           unit, server, integration, client и helpers
 ├── scripts/         скрипты запуска для Windows и Linux/macOS
-├── docs/            правила, протокол, архитектура и TODO
+├── docs/            правила, протокол, архитектура, TODO и HTML-макеты
 ├── .github/         CI
 └── корневые файлы   npm, ESLint, Jest, Node.js и editorconfig
 ```
@@ -93,6 +93,7 @@ BlackJack/
 - [Протокол WebSocket](docs/protocol.md)
 - [Архитектура](docs/architecture.md)
 - [План задач и возможных улучшений](docs/todo.md)
+- [HTML-макеты интерфейса](docs/mockups/)
 - [История изменений](CHANGELOG.md)
 
 ## Качество

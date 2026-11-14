@@ -41,6 +41,7 @@ Open `http://localhost:3000`. Node.js 18 or newer is required. Platform scripts 
 - [Table rules](docs/rules.md) (Russian)
 - [WebSocket protocol](docs/protocol.md) (Russian)
 - [Architecture](docs/architecture.md) (Russian)
+- [Interface mockups](docs/mockups/) (Russian)
 - [Changelog](CHANGELOG.md)
 
 ## Limitations
